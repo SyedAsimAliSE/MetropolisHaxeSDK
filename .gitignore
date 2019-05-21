@@ -1,0 +1,7 @@
+*.hxproj
+*.txt
+
+src/com/valour/classes/Api.hx
+
+bin/
+.build

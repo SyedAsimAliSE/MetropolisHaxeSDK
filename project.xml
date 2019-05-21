@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	<!-- NMML reference: https://gist.github.com/1763850 -->
+	
+	<meta title="MetropolisGraphqlSDK" package="MetropolisGraphqlSDK" version="1.0.0" company="Asim" />
+	
+	<!-- output -->
+	<app main="Main" file="MetropolisGraphqlSDK" path="bin" />
+	
+	<window background="#000000" fps="60" />
+	<window width="1920" height="1080" unless="mobile" />
+	<!-- <window allow-high-dpi="true" width="0" height="0" fps="60" if="html5" /> -->
+	<!-- <window orientation="landscape" vsync="false" antialiasing="0" if="cpp" /> -->
+	
+	<!-- classpath, haxe libs -->
+	<source path="src" />
+	<haxelib name="openfl" />
+	<haxelib name="tjson" />
+	
+	<!-- assets -->
+	<icon path="assets/openfl.svg" />
+	<assets path="assets/img" rename="img" />
+	
+	<!-- optimize output
+	<haxeflag name="-dce full" /> -->
+	
+</project>

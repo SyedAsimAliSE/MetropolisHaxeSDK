@@ -37,7 +37,7 @@ class Main extends Sprite implements IServerRequestDelegate
 
 		logger.log("Sending login call");
 
-		_server = new Metropolis(this);
+		_server = new Metropolis("http://localhost:8000/graphql");
 
 		authenticate();
 	}
@@ -45,7 +45,7 @@ class Main extends Sprite implements IServerRequestDelegate
 	private function authenticate():Void
 	{
 		//AUTHENTICATE
-		_server.makeGraphQLRequest(AppApi.authenticateApp);
+		_server.makeGraphQLRequest(this, AppApi.authenticateApp);
 	}
 
 	public function serverRequestComplete(response:ServerResponse):Void

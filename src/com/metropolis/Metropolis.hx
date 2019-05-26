@@ -1,6 +1,6 @@
 package com.metropolis;
 
-import openfl.utils.Object;
+import openfl.errors.Error;
 import com.metropolis.Request;
 
 /**
@@ -9,11 +9,13 @@ import com.metropolis.Request;
  */
 class Metropolis
 {
+	private var _serverURL:String = null;
 
 	private var _accessToken:String = null;
 	private var _delegate:IServerRequestDelegate = null;
 
 	private var _request:GraphQLRequest = null;
+	private var _isRequestInProgress:Bool = false;
 
 	public var token(get, set):String;
 
@@ -27,22 +29,46 @@ class Metropolis
 		return _accessToken = token;
 	}
 
-	public function new(delegate:IServerRequestDelegate, accessToken:String = null)
+	public var serverURL(get, set):String;
+    
+    function get_serverURL():String {
+        return _serverURL;
+    }
+    
+    function set_serverURL(serverURL:String):String {
+        return _serverURL = serverURL;
+    }
+
+	public function new(serverUrl:String = null)
 	{
-		_delegate = delegate;
-		_accessToken = accessToken;
+		_serverURL = serverUrl;
 	}
-
-	public function makeGraphQLRequest(request:Request):Void
+ 
+	public function makeGraphQLRequest(delegate:IServerRequestDelegate, request:Request):Void
 	{
+		if(_serverURL == null) 
+		{ 
+			throw new Error("Unable to find Server URL, please set a URL."); 
+		}
 
-		_request = new GraphQLRequest(request.query, request.variables, request.operation, _accessToken);
+		_delegate = delegate;
 
-		_request.addEventListener(GraphQLRequest.COMPLETE, handleGraphQLReqComplete);
+		if(!_isRequestInProgress) 
+		{
+
+			_isRequestInProgress = true;
+		
+			_request = new GraphQLRequest(_serverURL, request, _accessToken);
+
+			_request.addEventListener(GraphQLRequest.COMPLETE, handleGraphQLReqComplete);
+		}
+		
 	}
 
 	private function handleGraphQLReqComplete(e:ServerResponse)
 	{
+		_isRequestInProgress = false;
+
 		_delegate.serverRequestComplete(e);
 	}
 

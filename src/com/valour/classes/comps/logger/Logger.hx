@@ -1,25 +1,26 @@
 package com.valour.classes.comps.logger;
 
+import openfl.display.FPS;
 import openfl.display.Shape;
+import openfl.display.Sprite;
+import openfl.text.TextField;
 import openfl.text.TextFieldType;
-import openfl.utils.Assets;
 import openfl.text.TextFormat;
 import openfl.text.TextFormatAlign;
-import openfl.display.FPS;
-import openfl.text.TextField;
-import openfl.display.Sprite;
 
 /**
  * A Logger view to show traces in a small window overlay along with FPS
- * 
+ *
  * @author Asim
  */
 
-class Logger extends Sprite {
+class Logger extends Sprite
+{
 
 	private var _logView:TextField;
 
-	public function new() {
+	public function new()
+	{
 
 		super();
 
@@ -32,15 +33,17 @@ class Logger extends Sprite {
 
 	}
 
-    private function createBG():Void {
-        
-		addChild(createShape(0,20, 220, 300, 0xFFFFFF, 0.2)); //Log BG
-		
-		addChild(createShape(0,10, 220, 20, 0xFFFFFF)); //FPS BG
-    }
+	private function createBG():Void
+	{
 
-    private function createField():Void {
-        //var font = Assets.getFont("fonts/GADUGI.TTF");
+		addChild(createShape(0,20, 220, 300, 0xFFFFFF, 0.2)); //Log BG
+
+		addChild(createShape(0,10, 220, 20, 0xFFFFFF)); //FPS BG
+	}
+
+	private function createField():Void
+	{
+		//var font = Assets.getFont("fonts/GADUGI.TTF");
 		var format:TextFormat = new TextFormat();
 		//format.font = font.fontName;
 		format.size = 12;
@@ -62,27 +65,28 @@ class Logger extends Sprite {
 		_logView.wordWrap = true;
 		_logView.border = false;
 
-        addChild(_logView);
-    }
+		addChild(_logView);
+	}
 
-	private function createShape(_x:Int, _y:Int, _w:Float, _h:Float, _color:Int = 0x000000, _alpha:Float = 1):Shape {
-        
-        var shape:Shape = new Shape();
+	private function createShape(_x:Int, _y:Int, _w:Float, _h:Float, _color:Int = 0x000000, _alpha:Float = 1):Shape
+	{
+
+		var shape:Shape = new Shape();
 		shape.graphics.beginFill (_color, _alpha);
 		shape.graphics.drawRect (_x, _y, _w, _h);
 		shape.graphics.endFill();
-        
-        return shape;
-    }
 
-    public function log(str:String):Void {
-		_logView.appendText(str + '\n');
-
-        if(_logView.length >= 300) {
-            _logView.scrollV += 10;
-        }
+		return shape;
 	}
 
+	public function log(str:String):Void
+	{
+		_logView.appendText(str + '\n');
 
+		if (_logView.length >= 300)
+		{
+			_logView.scrollV += 10;
+		}
+	}
 
 }

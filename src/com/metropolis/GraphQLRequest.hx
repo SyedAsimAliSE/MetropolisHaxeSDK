@@ -1,23 +1,29 @@
 package com.metropolis;
 
 import haxe.io.Bytes;
-import lime.net.HTTPRequestMethod;
 import lime.net.HTTPRequest;
 import lime.net.HTTPRequestHeader;
-import tjson.TJSON;
-import openfl.utils.Object;
+import lime.net.HTTPRequestMethod;
 import openfl.net.URLLoader;
+import openfl.utils.Object;
+import tjson.TJSON;
 
 /**
  * Metropolis Haxe SDK
  * @author Asim
  */
-class GraphQLRequest extends URLLoader {
-	public static inline var SUCCESS:String = 'success';
-	public static inline var FAILURE:String = 'failure';
+class GraphQLRequest extends URLLoader
+{
 
-	public function new(query:String, variables:Object, operationName:String, token:String = null) {
+	public static inline var COMPLETE:String = 'complete';
+
+	private var resource:Resource<Object, Dynamic>;
+
+	public function new(query:String, variables:Object, operationName:String, token:String = null)
+	{
 		super();
+
+		resource = new Resource();
 
 		var obj:Object = {};
 		obj.query = query;
@@ -36,35 +42,47 @@ class GraphQLRequest extends URLLoader {
 		request.data = Bytes.ofString(body);
 		request.contentType = "application/json";
 
-		request.load(Constants.METROPOLIS_API_URL).onComplete(function(data) {
+		request.load(Constants.METROPOLIS_API_URL).onComplete(function(data)
+		{
 			handleSuccess(data);
-		}).onError(function(err) {
+		}).onError(function(err)
+		{
 			handleFailure(err);
 		});
 	}
 
-	private function handleSuccess(resp:Dynamic):Void {
+	private function handleSuccess(resp:Dynamic):Void
+	{
 		//trace(resp);
 
 		var response:Object = TJSON.parse(resp);
 
-		if (response.data == null) {
+		if (response.data == null)
+		{
 			var error:String = "SERVER_INTERNAL_ERROR";
-			if (response.errors != null || response.errors.length > 0) {
+			if (response.errors != null || response.errors.length > 0)
+			{
 				error = response.errors[0].message;
 			}
 
-			this.dispatchEvent(new ServerResponse(FAILURE, error));
+			resource.failure = error;
+
+			this.dispatchEvent(new ServerResponse(COMPLETE, resource));
 
 			return;
 		}
 
-		this.dispatchEvent(new ServerResponse(SUCCESS, response));
+		resource.success = response.data;
+
+		this.dispatchEvent(new ServerResponse(COMPLETE, resource));
 	}
 
-	private function handleFailure(err:Dynamic):Void {
+	private function handleFailure(err:Dynamic):Void
+	{
 		trace(err);
 
-		this.dispatchEvent(new ServerResponse(FAILURE, "Unable to call server"));
+		resource.failure = "Unable to call server";
+
+		this.dispatchEvent(new ServerResponse(COMPLETE, resource));
 	}
 }

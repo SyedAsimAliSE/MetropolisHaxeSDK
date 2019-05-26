@@ -1,38 +1,49 @@
 package com.metropolis;
 
-import openfl.utils.Object;
 import openfl.events.Event;
+import openfl.utils.Object;
 
 /**
  * Server Response
  * @author Asim
  */
-class ServerResponse extends Event {
-	
-    private var _data:Object;
+class ServerResponse extends Event
+{
 
-	public function new(type:String, data:Object = null, bubbles:Bool = false, cancelable:Bool = false) {
-		
-        super(type, bubbles, cancelable);
+	private var _resource:Resource<Object, Dynamic>;
 
-		_data = data;
+	public var resource(get, set):Resource<Object, Dynamic>;
+
+	function get_resource():Resource<Object, Dynamic>
+	{
+		return _resource;
 	}
 
-	public override function clone():ServerResponse {
+	function set_resource(data:Resource<Object, Dynamic>):Resource<Object, Dynamic>
+	{
+		return _resource = data;
+	}
 
-		return new ServerResponse(type, _data, bubbles, cancelable);
+	public function new(type:String, data:Resource<Object, Dynamic> = null, bubbles:Bool = false, cancelable:Bool = false)
+	{
+
+		super(type, bubbles, cancelable);
+
+		_resource = data;
+	}
+
+	public override function clone():ServerResponse
+	{
+
+		return new ServerResponse(type, _resource, bubbles, cancelable);
 
 	}
 
-	public override function toString():String {
+	public override function toString():String
+	{
 
-		return "[AppEvents type=\"" + type + "\" bubbles=" + bubbles + " cancelable=" + cancelable + " eventPhase=" + eventPhase + " data=" + _data + "]";
-
-	}
-
-	public function getData():Object {
-
-		return _data;
+		return "[AppEvents type=\"" + type + "\" bubbles=" + bubbles + " cancelable=" + cancelable + " eventPhase=" + eventPhase + " resource=" + _resource + "]";
 
 	}
+
 }

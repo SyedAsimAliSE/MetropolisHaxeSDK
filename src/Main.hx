@@ -7,6 +7,7 @@ import com.valour.classes.comps.logger.Logger;
 import com.valour.classes.data.AppConfigs;
 import openfl.display.Sprite;
 import openfl.events.Event;
+import com.valour.classes.data.AppApi;
 
 /**
  * Metropolis Haxe SDK
@@ -44,11 +45,7 @@ class Main extends Sprite implements IServerRequestDelegate
 	private function authenticate():Void
 	{
 		//AUTHENTICATE
-		_server.makeGraphQLRequest(
-			"mutation authenticateApp($pkgName: String!) {\n  authenticateApp(pkgName: $pkgName) {\n    token\n  }\n}\n",
-		{"pkgName":"del.del.del"},
-		"authenticateApp"
-		);
+		_server.makeGraphQLRequest(AppApi.authenticateApp);
 	}
 
 	public function serverRequestComplete(response:ServerResponse):Void

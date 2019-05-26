@@ -1,6 +1,7 @@
 package com.metropolis;
 
 import openfl.utils.Object;
+import com.metropolis.Request;
 
 /**
  * Metropolis Haxe SDK
@@ -32,10 +33,10 @@ class Metropolis
 		_accessToken = accessToken;
 	}
 
-	public function makeGraphQLRequest(query:String, variables:Object, operationName:String):Void
+	public function makeGraphQLRequest(request:Request):Void
 	{
 
-		_request = new GraphQLRequest(query, variables, operationName, _accessToken);
+		_request = new GraphQLRequest(request.query, request.variables, request.operation, _accessToken);
 
 		_request.addEventListener(GraphQLRequest.COMPLETE, handleGraphQLReqComplete);
 	}

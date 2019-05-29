@@ -1,23 +1,22 @@
 package;
 
-import com.metropolis.IServerRequestDelegate;
-import com.metropolis.Metropolis;
-import com.metropolis.ServerResponse;
+import com.domain.Portfolio;
+import com.domain.Project;
+import com.metropolis.internals.Resource;
 import com.valour.classes.comps.logger.Logger;
-import com.valour.classes.data.AppConfigs;
+import com.valour.classes.service.ServiceProvider;
 import openfl.display.Sprite;
 import openfl.events.Event;
-import com.valour.classes.data.AppApi;
+import openfl.utils.Object;
 
 /**
  * Metropolis Haxe SDK
  * @author Asim
  */
 
-class Main extends Sprite implements IServerRequestDelegate
+class Main extends Sprite
 {
 
-	private var _server:Metropolis = null;
 	private var logger:Logger = null;
 
 	public function new()
@@ -35,49 +34,61 @@ class Main extends Sprite implements IServerRequestDelegate
 		logger = new Logger();
 		addChild(logger);
 
-		logger.log("Sending login call");
+		logger.log("Authenticating");
+		logger.log("-------------");
 
-		_server = new Metropolis("http://localhost:8000/graphql");
-
-		authenticate();
-	}
-
-	private function authenticate():Void
-	{
-		//AUTHENTICATE
-		_server.makeGraphQLRequest(this, AppApi.authenticateApp);
-	}
-
-	public function serverRequestComplete(response:ServerResponse):Void
-	{
-
-		trace('SUCCESS '+response.resource.success);
-		trace('FAILED '+response.resource.failure);
-
-		var _data = response.resource.success;
-		var _err = response.resource.failure;
-
-		if (_data != null)
+		ServiceProvider.instance.appRepository.authenticateApp();
+		ServiceProvider.instance.appRepository.onAuthenticate += function(resource:Resource<Object, String>)
 		{
+			//trace("DATA IN MANIN: " + resource);
 
-			if (_data.authenticateApp != null)
+			if (resource.success != null)
 			{
+				logger.log("AUTHENTICATED");
+				logger.log("-------------");
+				//logger.log(resource.success);
 
-				var token:String = _data.authenticateApp.token;
-				var appConfigs = new AppConfigs(token);
-
-				_server.token = token;
-
-				logger.log(appConfigs.token);
-
+				getPortfolios();
+				//getPortfolioProjects();
+			}
+			else
+			{
+				logger.log(resource.failure);
 			}
 
-		}
+		};
+	}
 
-		if (_err != null)
+	private function getPortfolios():Void
+	{
+		logger.log("GETTING PORTFOLIOS");
+		logger.log("-------------");
+
+		var data = ServiceProvider.instance.appRepository.getPortfolios();
+		trace("IN MAIN LOCAL "+data);
+
+		ServiceProvider.instance.appRepository.onGettingtPortfolios += function(resource:Resource<Array<Portfolio>, String>)
 		{
-			logger.log(_err);
-		}
+			logger.log("GOT PORTFOLIOS");
+			logger.log(resource.success[0].name);
+			logger.log("-------------");
+		};
+	}
+
+	private function getPortfolioProjects():Void
+	{
+		logger.log("GETTING PROJECTS");
+		logger.log("-------------");
+
+		var data = ServiceProvider.instance.appRepository.getPortfolioProjects("5ca87d9638a52e1c40b4c0c4");
+		trace("IN MAIN LOCAL "+data);
+
+		ServiceProvider.instance.appRepository.onGettingPortfolioProjects += function(resource:Resource<Array<Project>, String>)
+		{
+			logger.log("GOT PROJECTS");
+			trace(resource);
+			logger.log("-------------");			
+		};
 
 	}
 

@@ -32,8 +32,6 @@ class TinkRequest extends RequestBase
 		_resource = new Resource();
 	}
 
-	/* INTERFACE com.metropolis.IServerRequest */
-
 	public function createRequest(_request:Request):Void
 	{
 		request = _request;
@@ -54,7 +52,7 @@ class TinkRequest extends RequestBase
 		requestHeaders.push(new HeaderField(CONTENT_TYPE, "application/json"));
 
 		if (token != null)
-			requestHeaders.push(new HeaderField("Authorization", token));
+			requestHeaders.push(new HeaderField(AUTHORIZATION, token));
 
 		var options:FetchOptions =
 		{
@@ -64,8 +62,8 @@ class TinkRequest extends RequestBase
 		};
 
 		Client.fetch(serverUrl, options).all().handle(function(outcome) switch outcome
-	{
-		case Success(res): handleSuccess(res);
+		{
+			case Success(res): handleSuccess(res);
 
 			case Failure(err): handleFailure(err);
 		});
@@ -74,10 +72,14 @@ class TinkRequest extends RequestBase
 
 	private function handleSuccess(resp:Dynamic):Void
 	{
-		//trace(resp);
+		//var header:Object = TJSON.parse(haxe.Json.stringify(resp.header));
+		//trace(header);
+		//trace(header.reason);
+		//trace(resp.body);		
+		//trace(resp.header.statusCode);
 
 		var body = resp.body.toString();
-		var code = resp.header.statusCode;
+		//var code = resp.header.statusCode;
 
 		var response:Object = TJSON.parse(body);
 
@@ -102,7 +104,9 @@ class TinkRequest extends RequestBase
 	}
 
 	private function handleFailure(err:Dynamic):Void
-	{
+	{ 
+		trace(err);
+		
 		_resource.failure = "Unable to call server";
 		this.onRequestComplete.dispatch(_resource);
 	}

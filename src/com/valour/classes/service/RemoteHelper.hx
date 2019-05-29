@@ -22,8 +22,11 @@ class RemoteHelper
 	{
 		baseUrl = _baseUrl;
 		PKG = _PKG;
-
+	}
+	
+	public function setup():Void
+	{
 		server = new Metropolis(baseUrl);
 	}
-
+	
 }

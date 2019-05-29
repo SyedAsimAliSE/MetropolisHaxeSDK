@@ -1,83 +1,63 @@
 package com.metropolis;
 
-import openfl.errors.Error;
-import com.metropolis.Request;
+import com.metropolis.internals.Request;
+import com.metropolis.internals.Resource;
+import openfl.utils.Object;
+
+using com.metropolis.internals.EventHandler;
 
 /**
  * Metropolis Haxe SDK
  * @author Asim
+ *
+ * Wrapper for the Request
  */
 class Metropolis
 {
-	private var _serverURL:String = null;
+	public var onServerResponse = new EventHandler<Resource<Object, String> ->Void>();
 
-	private var _accessToken:String = null;
-	private var _delegate:IServerRequestDelegate = null;
+	@:isVar public var serverURL(get, set):String = null;
+	@:isVar public var accessToken(get, set):String = null;
 
-	private var _request:GraphQLRequest = null;
+	function get_serverURL():String { return serverURL;	}
+	function set_serverURL(value:String):String { return serverURL = value;	}
+
+	function get_accessToken():String { return accessToken;	}
+	function set_accessToken(value:String):String { return accessToken = value;	}
+
+	private var _tinkRequest:TinkRequest = null;
+
 	private var _isRequestInProgress:Bool = false;
 
-	public var token(get, set):String;
-
-	function get_token():String
+	public function new(_serverUrl:String = null)
 	{
-		return _accessToken;
-	}
+		serverURL = _serverUrl;
 
-	function set_token(token:String):String
-	{
-		return _accessToken = token;
-	}
-
-	public var serverURL(get, set):String;
-    
-    function get_serverURL():String {
-        return _serverURL;
-    }
-    
-    function set_serverURL(serverURL:String):String {
-        return _serverURL = serverURL;
-    }
-
-	public function new(serverUrl:String = null)
-	{
-		_serverURL = serverUrl;
-	}
- 
-	public function makeGraphQLRequest(delegate:IServerRequestDelegate, request:Request):Void
-	{
-		if(_serverURL == null) 
-		{ 
-			throw new Error("Unable to find Server URL, please set a URL."); 
-		}
-
-		_delegate = delegate;
-
-		if(!_isRequestInProgress) 
+		_tinkRequest = new TinkRequest(serverURL, accessToken);
+		_tinkRequest.onRequestComplete += function(resource:Resource<Object, String>)
 		{
+			_isRequestInProgress = false;
+			
+			this.onServerResponse.dispatch(resource);
+		};
 
-			_isRequestInProgress = true;
-		
-			_request = new GraphQLRequest(_serverURL, request, _accessToken);
-
-			_request.addEventListener(GraphQLRequest.COMPLETE, handleGraphQLReqComplete);
-		}
-		
 	}
 
-	private function handleGraphQLReqComplete(e:ServerResponse)
+	public function createTinkerGQLReq(request:Request):Void
 	{
-		_isRequestInProgress = false;
+		if (!_isRequestInProgress)
+		{
+			_isRequestInProgress = true;
 
-		_delegate.serverRequestComplete(e);
+			_tinkRequest.token = accessToken;
+
+			_tinkRequest.createRequest(request);
+		}
 	}
 
 	public function dispose()
 	{
-		_request.removeEventListener(GraphQLRequest.COMPLETE, handleGraphQLReqComplete);
-
-		_delegate = null;
-		_request = null;
+		_tinkRequest = null;
 	}
 
 }

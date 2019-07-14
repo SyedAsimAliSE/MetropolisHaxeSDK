@@ -3,8 +3,8 @@ package com.metropolis;
 import com.metropolis.internals.Request;
 import com.metropolis.internals.Resource;
 import openfl.utils.Object;
-
-using com.metropolis.internals.EventHandler;
+import promhx.Deferred;
+import promhx.Promise;
 
 /**
  * Metropolis Haxe SDK
@@ -14,7 +14,6 @@ using com.metropolis.internals.EventHandler;
  */
 class Metropolis
 {
-	public var onServerResponse = new EventHandler<Resource<Object, String> ->Void>();
 
 	@:isVar public var serverURL(get, set):String = null;
 	@:isVar public var accessToken(get, set):String = null;
@@ -34,25 +33,31 @@ class Metropolis
 		serverURL = _serverUrl;
 
 		_tinkRequest = new TinkRequest(serverURL, accessToken);
-		_tinkRequest.onRequestComplete += function(resource:Resource<Object, String>)
-		{
-			_isRequestInProgress = false;
-			
-			this.onServerResponse.dispatch(resource);
-		};
-
 	}
 
-	public function createTinkerGQLReq(request:Request):Void
+	public function createTinkerGQLReq(request:Request):Promise<Resource<Object, String>>
 	{
+		var deferred = new Deferred();
+
 		if (!_isRequestInProgress)
 		{
 			_isRequestInProgress = true;
 
 			_tinkRequest.token = accessToken;
 
-			_tinkRequest.createRequest(request);
+			_tinkRequest.createRequest(request).then(function (resource:Resource<Object, String>)
+			{
+				_isRequestInProgress = false;
+
+				deferred.resolve(resource);
+
+			}).catchError(function(error)
+			{
+				deferred.throwError(error);
+			});
 		}
+
+		return new Promise(deferred);
 	}
 
 	public function dispose()

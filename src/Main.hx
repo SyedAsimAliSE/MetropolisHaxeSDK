@@ -1,7 +1,6 @@
 package;
 
 import com.domain.Portfolio;
-import com.domain.Project;
 import com.metropolis.internals.Resource;
 import com.valour.classes.comps.logger.Logger;
 import com.valour.classes.service.ServiceProvider;
@@ -37,59 +36,46 @@ class Main extends Sprite
 		logger.log("Authenticating");
 		logger.log("-------------");
 
-		ServiceProvider.instance.appRepository.authenticateApp();
-		ServiceProvider.instance.appRepository.onAuthenticate += function(resource:Resource<Object, String>)
+		ServiceProvider.instance.appRepository.authenticateApp().then(function (resource:Resource<Object, String>)
 		{
-			//trace("DATA IN MANIN: " + resource);
-
 			if (resource.success != null)
 			{
 				logger.log("AUTHENTICATED");
 				logger.log("-------------");
-				//logger.log(resource.success);
+				logger.log(resource.success);
 
 				getPortfolios();
-				//getPortfolioProjects();
 			}
 			else
 			{
 				logger.log(resource.failure);
 			}
-
-		};
+		}).catchError(function(error)
+		{
+			trace(error);
+			logger.log("Unable to call server");
+		});
 	}
 
 	private function getPortfolios():Void
 	{
+		logger.log("-------------");
 		logger.log("GETTING PORTFOLIOS");
 		logger.log("-------------");
 
-		var data = ServiceProvider.instance.appRepository.getPortfolios();
-		trace("IN MAIN LOCAL "+data);
-
-		ServiceProvider.instance.appRepository.onGettingtPortfolios += function(resource:Resource<Array<Portfolio>, String>)
+		ServiceProvider.instance.appRepository.getPortfolios()
+		.then(function(resource:Resource<Array<Portfolio>, String>)
 		{
+			//trace(resource);
 			logger.log("GOT PORTFOLIOS");
 			logger.log(resource.success[0].name);
 			logger.log("-------------");
-		};
-	}
-
-	private function getPortfolioProjects():Void
-	{
-		logger.log("GETTING PROJECTS");
-		logger.log("-------------");
-
-		var data = ServiceProvider.instance.appRepository.getPortfolioProjects("5ca87d9638a52e1c40b4c0c4");
-		trace("IN MAIN LOCAL "+data);
-
-		ServiceProvider.instance.appRepository.onGettingPortfolioProjects += function(resource:Resource<Array<Project>, String>)
+		}).catchError(function(error)
 		{
-			logger.log("GOT PROJECTS");
-			trace(resource);
-			logger.log("-------------");			
-		};
-
+			trace(error);
+			logger.log("Unable to call server");
+		});
 	}
+ 
 
 }

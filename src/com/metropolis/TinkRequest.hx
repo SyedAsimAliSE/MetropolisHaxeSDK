@@ -5,12 +5,11 @@ import com.metropolis.internals.RequestBase;
 import com.metropolis.internals.Resource;
 import haxe.io.Bytes;
 import openfl.utils.Object;
+import promhx.*;
 import tink.http.Client;
 import tink.http.Fetch.FetchOptions;
 import tink.http.Header.HeaderField;
 import tjson.TJSON;
-
-using com.metropolis.internals.EventHandler;
 
 /**
  * Metropolis Haxe SDK
@@ -21,8 +20,6 @@ using com.metropolis.internals.EventHandler;
 class TinkRequest extends RequestBase
 {
 
-	public var onRequestComplete = new EventHandler<Resource<Object, String>->Void>();
-
 	private var _resource:Resource<Object, String> = null; //will have the payload
 
 	public function new(_serverUrl:String, _token:String = null)
@@ -32,7 +29,7 @@ class TinkRequest extends RequestBase
 		_resource = new Resource();
 	}
 
-	public function createRequest(_request:Request):Void
+	public function createRequest(_request:Request):Promise<Resource<Object, String>>
 	{
 		request = _request;
 
@@ -61,54 +58,58 @@ class TinkRequest extends RequestBase
 			body: body,
 		};
 
+		//trace("TOKEN "+token);
+		//trace("FetchOptions "+options);
+
+		var deferred = new Deferred();
+
 		Client.fetch(serverUrl, options).all().handle(function(outcome) switch outcome
 		{
-			case Success(res): handleSuccess(res);
+			case Success(resp):
+				{
+					//var header:Object = TJSON.parse(haxe.Json.stringify(resp.header));
+					//var code = resp.header.statusCode;
 
-			case Failure(err): handleFailure(err);
+					//trace(header);
+					//trace(header.reason);
+					//trace(resp.body);
+					//trace(code);
+
+					var body = resp.body.toString();
+					var response:Object = TJSON.parse(body);
+
+					//trace("DATA: "+response.data);
+					//trace("ERRORS: "+response.errors);
+
+					if (response.data == null)
+					{
+						var error:String = "SERVER_INTERNAL_ERROR";
+						if (response.errors != null || response.errors.length > 0)
+						{
+							error = response.errors[0].message;
+						}
+
+						_resource.failure = error;
+
+						deferred.resolve(_resource);
+
+						return;
+					}
+
+					_resource.success = response.data;
+
+					//trace("TINKER "+_resource);
+
+					deferred.resolve(_resource);
+				}
+
+			case Failure(err): {
+					deferred.throwError(err);
+				}
 		});
 
-	}
+		return new Promise(deferred);
 
-	private function handleSuccess(resp:Dynamic):Void
-	{
-		//var header:Object = TJSON.parse(haxe.Json.stringify(resp.header));
-		//trace(header);
-		//trace(header.reason);
-		//trace(resp.body);		
-		//trace(resp.header.statusCode);
-
-		var body = resp.body.toString();
-		//var code = resp.header.statusCode;
-
-		var response:Object = TJSON.parse(body);
-
-		if (response.data == null)
-		{
-			var error:String = "SERVER_INTERNAL_ERROR";
-			if (response.errors != null || response.errors.length > 0)
-			{
-				error = response.errors[0].message;
-			}
-
-			_resource.failure = error;
-
-			this.onRequestComplete.dispatch(_resource);
-
-			return;
-		}
-
-		_resource.success = response.data;
-		this.onRequestComplete.dispatch(_resource);
-
-	}
-
-	private function handleFailure(err:Dynamic):Void
-	{ 
-		trace(err);
-		
-		_resource.failure = "Unable to call server";
-		this.onRequestComplete.dispatch(_resource);
-	}
+	}//
 
 }

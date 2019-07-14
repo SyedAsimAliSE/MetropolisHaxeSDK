@@ -4,8 +4,8 @@ import com.metropolis.internals.Request;
 import com.metropolis.internals.Resource;
 import com.valour.classes.service.RemoteHelper;
 import openfl.utils.Object;
-
-using com.metropolis.internals.EventHandler;
+import promhx.Deferred;
+import promhx.Promise;
 
 /**
  * ...
@@ -15,8 +15,6 @@ using com.metropolis.internals.EventHandler;
  */
 class AppRemoteAPI
 {
-	public var onRemoteResponse = new EventHandler<Resource<Object, String>->Void>();
-
 	private var _networkHelper:RemoteHelper = null;
 
 	private var _request:Request = null;
@@ -24,24 +22,10 @@ class AppRemoteAPI
 	public function new(networkHelper:RemoteHelper)
 	{
 		_networkHelper = networkHelper;
-
-		_networkHelper.server.onServerResponse += function(resource:Resource<Object, String>)
-		{
-			switch (resource.resName)
-			{
-				case "authenticateApp": handleAuthentication(resource);
-				case "getPortfolios": handlePortfolios(resource);
-				case "getPortfolioProjects": handlePortfolioProjects(resource);
-
-				default:
-
-			}
-
-		};
 	}
 
 	//CALLS
-	public function authenticateApp():Void
+	public function authenticateApp():Promise<Resource<Object, String>>
 	{
 		_request = new Request(
 			"mutation authenticateApp($pkgName: String!) {\n  authenticateApp(pkgName: $pkgName) {\n    token\n  }\n}\n",
@@ -49,69 +33,64 @@ class AppRemoteAPI
 		"authenticateApp"
 		);
 
-		_networkHelper.server.createTinkerGQLReq(_request);
+		//return _networkHelper.server.createTinkerGQLReq(_request);
+
+		var deferred = new Deferred();
+
+		_networkHelper.server.createTinkerGQLReq(_request)
+		.then(function (resource:Resource<Object, String>)
+		{
+			//trace(resource);
+			if (resource.success != null)
+			{
+				_networkHelper.server.accessToken = resource.success.authenticateApp.token;
+
+				resource.success = resource.success.authenticateApp.token;
+			}
+
+			deferred.resolve(resource);
+
+		})
+		.catchError(function(error)
+		{
+			//trace(error);
+			deferred.throwError(error);
+		});
+
+		return new Promise(deferred);
 	}
 
-	public function getPortfolios():Void
+	public function getPortfolios():Promise<Resource<Object, String>>
 	{
-		 _request = new Request(
+		_request = new Request(
 			"query getPortfolios {\n  getPortfolios {\n    _id\n    type\n    name\n    desc\n    thumb\n    image\n  }\n}\n",
 		{},
 		"getPortfolios"
 		);
 
-		_networkHelper.server.createTinkerGQLReq(_request);
-	}
+		//return _networkHelper.server.createTinkerGQLReq(_request);
 
-	public function getPortfolioProjects(portfolioId:String):Void
-	{
-		_request = new Request(
-			"query getPortfolioProjects($id: ID!) {\n  getPortfolioProjects(id: $id) {\n    _id\n    title\n    desc\n    thumbs\n    images\n    videos\n    duration\n    type\n    client\n    url\n    resUrl\n    techStack\n    tags\n    portfolio {\n      _id\n    }\n  }\n}\n",
-		{"id":portfolioId},
-		"getPortfolioProjects"
-		);
-		
+		var deferred = new Deferred();
 
-		_networkHelper.server.createTinkerGQLReq(_request);
-	}
-
-	//HANDLERS
-	private function handleAuthentication(resource:Resource<Object, String>):Void
-	{
-		if (resource.success != null)
+		_networkHelper.server.createTinkerGQLReq(_request)
+		.then(function (resource:Resource<Object, String>)
 		{
-			_networkHelper.server.accessToken = resource.success.authenticateApp.token;
+			if (resource.success != null)
+			{
+				resource.success = resource.success.getPortfolios;
+			}
 
-			resource.success = resource.success.authenticateApp.token;
-		}
+			deferred.resolve(resource);
 
-		//trace(resource);
-
-		this.onRemoteResponse.dispatch(resource);
-	}
-
-	private function handlePortfolios(resource:Resource<Object, String>):Void
-	{
-		if (resource.success != null)
+			//trace(deferred);
+		})
+		.catchError(function(error)
 		{
-			resource.success = resource.success.getPortfolios;
-		}
+			//trace(error);
+			deferred.throwError(error);
+		});
 
-		//trace(resource);
-
-		this.onRemoteResponse.dispatch(resource);
-	}
-
-	private function handlePortfolioProjects(resource:Resource<Object, String>):Void
-	{
-		if (resource.success != null)
-		{
-			resource.success = resource.success.getPortfolioProjects;
-		}
-
-		//trace(resource);
-
-		this.onRemoteResponse.dispatch(resource);
+		return new Promise(deferred);
 	}
 
 }

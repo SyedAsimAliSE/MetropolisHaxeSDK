@@ -19,6 +19,7 @@
 	<haxelib name="singletoninterface" /> 
 	<haxelib name="tink_http" /> 
 	<haxelib name="haxelow" /> 
+	<haxelib name="promhx" /> 
 	
 	<!-- assets -->
 	<icon path="assets/openfl.svg" />
@@ -27,5 +28,6 @@
 	
 	<!-- optimize output -->
 	<haxeflag name="-dce full" /> 
+	<haxeflag name="-D no-deprecation-warnings" /> 
 	
 </project>

@@ -1,7 +1,6 @@
 package com.valour.classes.data.local;
 
 import com.domain.Portfolio;
-import com.domain.Project;
 import com.metropolis.internals.Resource;
 import com.valour.classes.service.LocalHelper;
 import openfl.utils.Object;
@@ -43,40 +42,6 @@ class AppLocalAPI
 		var data:Array<Portfolio> = _localHelper.db.idCol(Portfolio);
 
 		resource.resName = "getPortfolios";
-
-		if (data != null && data.length > 0)
-		{
-			resource.success = data;
-		}
-		else {
-			resource.failure = "No Records Found";
-		}
-
-		//trace(resource);
-
-		//trace("DB " + _localHelper.db.backup());
-
-		return resource;
-	}
-
-	public function saveProjects(projects:Array<Project>):Void
-	{
-		var data = _localHelper.db.idCol(Project);
-
-		for (i in 0...projects.length)
-		{
-			data.idInsert(projects[i]);
-		}
-
-		_localHelper.db.save();
-	}
-
-	public function getProjects():Resource<Array<Project>, String>
-	{
-		var resource:Resource<Array<Project>, String> = new Resource();
-		var data:Array<Project> = _localHelper.db.idCol(Project);
-
-		resource.resName = "getPortfolioProjects";
 
 		if (data != null && data.length > 0)
 		{
